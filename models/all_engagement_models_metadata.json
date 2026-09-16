@@ -1,0 +1,31 @@
+{
+  "models": [
+    "Decision Tree",
+    "Histogram Gradient Boosting",
+    "K-Nearest Neighbours",
+    "Logistic Regression (Baseline)",
+    "RBF Support Vector Machine",
+    "Random Forest"
+  ],
+  "target": "EngagementLevel",
+  "target_order": [
+    "Low",
+    "Medium",
+    "High"
+  ],
+  "numeric_features": [
+    "Age",
+    "InGamePurchases",
+    "SessionsPerWeek",
+    "AvgSessionDurationMinutes",
+    "PlayerLevel",
+    "AchievementsUnlocked"
+  ],
+  "categorical_features": [
+    "Gender",
+    "Location",
+    "GameGenre",
+    "GameDifficulty"
+  ],
+  "random_state": 42
+}
