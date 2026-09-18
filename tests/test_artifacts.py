@@ -107,3 +107,26 @@ def test_load_models_normalizes_incompatible_deserialization_errors(monkeypatch,
 
     with pytest.raises(ArtifactLoadError, match="Run online_gaming_analysis.ipynb"):
         load_models(tmp_path / "model.joblib")
+
+
+def test_load_models_normalizes_invalid_pickle_opcode_errors(monkeypatch, tmp_path):
+    def raise_invalid_pickle_opcode(_path):
+        raise KeyError(118)
+
+    monkeypatch.setattr(artifacts.joblib, "load", raise_invalid_pickle_opcode)
+
+    with pytest.raises(ArtifactLoadError, match="Run online_gaming_analysis.ipynb"):
+        load_models(tmp_path / "model.joblib")
+
+
+def test_load_models_identifies_a_git_lfs_pointer(tmp_path):
+    model_file = tmp_path / "model.joblib"
+    model_file.write_text(
+        "version https://git-lfs.github.com/spec/v1\n"
+        "oid sha256:abc\n"
+        "size 100\n",
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ArtifactLoadError, match="git lfs pull"):
+        load_models(model_file)

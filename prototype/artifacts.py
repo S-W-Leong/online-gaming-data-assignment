@@ -28,6 +28,20 @@ def _regeneration_message(path: Path) -> str:
     return f"Required artifact is unavailable: {path}. Run online_gaming_analysis.ipynb to regenerate model artifacts."
 
 
+def _git_lfs_message(path: Path) -> str:
+    return (
+        f"Required model artifact was not downloaded: {path}. "
+        "Install Git LFS if necessary, then run `git lfs pull` from the project root."
+    )
+
+
+def _is_git_lfs_pointer(path: Path) -> bool:
+    try:
+        return path.read_bytes().startswith(b"version https://git-lfs.github.com/spec/v1")
+    except OSError:
+        return False
+
+
 def load_metadata(path: Path = METADATA_PATH) -> dict[str, Any]:
     try:
         metadata = json.loads(path.read_text(encoding="utf-8"))
@@ -40,9 +54,12 @@ def load_metadata(path: Path = METADATA_PATH) -> dict[str, Any]:
 
 @st.cache_resource(show_spinner="Loading saved engagement models…")
 def load_models(path: Path = MODEL_BUNDLE_PATH) -> dict[str, Any]:
+    if _is_git_lfs_pointer(path):
+        raise ArtifactLoadError(_git_lfs_message(path))
+
     try:
         loaded = joblib.load(path)
-    except (OSError, ValueError, EOFError, pickle.UnpicklingError, ImportError, AttributeError) as exc:
+    except (OSError, ValueError, EOFError, KeyError, pickle.UnpicklingError, ImportError, AttributeError) as exc:
         raise ArtifactLoadError(_regeneration_message(path)) from exc
     if not isinstance(loaded, dict):
         raise ArtifactLoadError(f"Model bundle must be a dictionary: {path}")
